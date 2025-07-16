@@ -69,3 +69,13 @@ temp/
 # Production
 /build
 /dist
+
+# Deployment and setup scripts (may contain sensitive info)
+*.sh
+DEPLOYMENT_GUIDE.md
+push-to-repo.sh
+create-repo.sh
+
+# Local deployment files
+deploy/
+deployment/

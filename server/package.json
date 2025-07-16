@@ -8,7 +8,8 @@
     "dev": "nodemon src/index.js",
     "test": "jest",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix"
+    "lint:fix": "eslint src/ --fix",
+    "seed": "node src/scripts/seedData.js"
   },
   "keywords": ["feedback", "forms", "survey", "api"],
   "author": "Feedback Platform Team",

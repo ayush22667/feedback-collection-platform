@@ -12,6 +12,14 @@ const questionSchema = z.object({
   type: z.enum(['text', 'textarea', 'radio', 'checkbox']),
   options: z.array(z.string()).optional(),
   required: z.boolean(),
+}).refine((data) => {
+  if (['radio', 'checkbox'].includes(data.type)) {
+    return data.options && data.options.length >= 2;
+  }
+  return true;
+}, {
+  message: 'Radio and checkbox questions must have at least 2 options',
+  path: ['options']
 });
 
 const formSchema = z.object({
@@ -92,20 +100,23 @@ const CreateForm: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Dashboard</span>
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900">Create New Form</h1>
-        <p className="text-gray-600">Build a feedback form with 3-5 questions</p>
-      </div>
+    <div className="min-h-screen bg-pattern py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 fade-in">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="font-medium">Back to Dashboard</span>
+          </button>
+          <div className="page-header">
+            <h1 className="page-title">Create New Form</h1>
+            <p className="page-subtitle">Build a beautiful feedback form with 3-5 questions</p>
+          </div>
+        </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 slide-up">
         <div className="card">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Form Details</h2>
           
@@ -158,7 +169,7 @@ const CreateForm: React.FC = () => {
 
           <div className="space-y-6">
             {fields.map((field, index) => (
-              <div key={field.id} className="border border-gray-200 rounded-lg p-4">
+              <div key={field.id} className="question-card">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-md font-medium text-gray-900">
                     Question {index + 1}
@@ -226,14 +237,17 @@ const CreateForm: React.FC = () => {
                         Options (one per line)
                       </label>
                       <textarea
-                        {...register(`questions.${index}.options`)}
+                        {...register(`questions.${index}.options`, {
+                          setValueAs: (value) => {
+                            if (typeof value === 'string') {
+                              return value.split('\n').filter(option => option.trim() !== '');
+                            }
+                            return value;
+                          }
+                        })}
                         rows={4}
                         className="input"
                         placeholder="Option 1&#10;Option 2&#10;Option 3"
-                        onChange={(e) => {
-                          const options = e.target.value.split('\n').filter(option => option.trim() !== '');
-                          // You would need to manually update the form value here
-                        }}
                       />
                       <p className="mt-1 text-xs text-gray-500">
                         Enter each option on a new line (minimum 2 options required)
@@ -267,7 +281,8 @@ const CreateForm: React.FC = () => {
             <span>{isLoading ? 'Creating...' : 'Create Form'}</span>
           </button>
         </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

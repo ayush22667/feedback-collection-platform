@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
@@ -20,21 +21,19 @@ const register = async (req, res) => {
       });
     }
 
-    const user = new User({
-      email,
-      password,
-      businessName
-    });
+    // Send OTP instead of creating user immediately
+    const otpResult = await emailService.sendOTP(email, businessName);
+    
+    // Store temporary registration data (could also use Redis)
+    global.tempRegistrations = global.tempRegistrations || new Map();
+    global.tempRegistrations.set(email, { password, businessName, timestamp: Date.now() });
 
-    await user.save();
-
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: 'Registration successful',
+      message: 'OTP sent to email for verification',
       data: {
-        userId: user._id,
-        email: user.email,
-        businessName: user.businessName
+        email,
+        otpExpires: otpResult.expirationDate
       }
     });
   } catch (error) {
@@ -132,8 +131,128 @@ const verifyToken = async (req, res) => {
   }
 };
 
+const sendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+        error: { code: 'EMAIL_REQUIRED' }
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.isEmailVerified) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email already registered and verified',
+        error: { code: 'EMAIL_EXISTS' }
+      });
+    }
+
+    const otpResult = await emailService.sendOTP(email);
+
+    res.json({
+      success: true,
+      message: 'OTP sent successfully',
+      data: {
+        otpExpires: otpResult.expirationDate
+      }
+    });
+  } catch (error) {
+    console.error('Send OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send OTP',
+      error: { code: 'OTP_SEND_ERROR' }
+    });
+  }
+};
+
+const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp, password, businessName } = req.body;
+
+    // Verify OTP
+    const otpVerification = emailService.verifyOTP(email, otp);
+    if (!otpVerification.valid) {
+      return res.status(400).json({
+        success: false,
+        message: otpVerification.error,
+        error: { code: 'INVALID_OTP' }
+      });
+    }
+
+    // Get temp registration data
+    const tempData = global.tempRegistrations?.get(email) || { password, businessName };
+    
+    // Create user
+    const user = new User({
+      email,
+      password: tempData.password,
+      businessName: tempData.businessName,
+      isEmailVerified: true,
+      authProvider: 'email'
+    });
+
+    await user.save();
+
+    // Clean up temp data
+    if (global.tempRegistrations) {
+      global.tempRegistrations.delete(email);
+    }
+
+    const token = generateToken(user._id);
+
+    // Send welcome email
+    await emailService.sendWelcomeEmail(email, tempData.businessName);
+
+    res.status(201).json({
+      success: true,
+      message: 'Email verified and registration completed',
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          businessName: user.businessName,
+          isEmailVerified: user.isEmailVerified
+        },
+        token,
+        expiresIn: process.env.JWT_EXPIRE || '7d'
+      }
+    });
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    
+    if (error.name === 'ValidationError') {
+      return res.status(422).json({
+        success: false,
+        message: 'Validation failed',
+        error: {
+          code: 'VALIDATION_ERROR',
+          details: Object.values(error.errors).map(err => ({
+            field: err.path,
+            message: err.message
+          }))
+        }
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error during verification',
+      error: { code: 'VERIFICATION_ERROR' }
+    });
+  }
+};
+
 module.exports = {
   register,
+  sendOTP,
+  verifyOTP,
   login,
   verifyToken
 };

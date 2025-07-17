@@ -23,6 +23,22 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Business name is required'],
     trim: true,
     maxlength: [100, 'Business name cannot exceed 100 characters']
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  authProvider: {
+    type: String,
+    enum: ['email', 'google'],
+    default: 'email'
+  },
+  googleId: {
+    type: String,
+    sparse: true
+  },
+  avatar: {
+    type: String
   }
 }, {
   timestamps: true

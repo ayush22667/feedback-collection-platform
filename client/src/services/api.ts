@@ -39,6 +39,12 @@ export const authApi = {
   
   verify: () =>
     api.get<ApiResponse>('/auth/verify'),
+  
+  sendOTP: (data: { email: string }) =>
+    api.post<ApiResponse>('/auth/send-otp', data),
+  
+  verifyOTP: (data: { email: string; otp: string; password: string; businessName: string }) =>
+    api.post<ApiResponse>('/auth/verify-otp', data),
 };
 
 export const formsApi = {

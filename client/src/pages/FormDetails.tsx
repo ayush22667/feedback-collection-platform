@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Download, Users, Calendar, BarChart3, Eye } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Download, Users, Calendar, BarChart3, Eye, Copy } from 'lucide-react';
 import { Form, Response, Analytics } from '../types';
 import { formsApi } from '../services/api';
 import Loading from '../components/common/Loading';
@@ -80,6 +80,23 @@ const FormDetails: React.FC = () => {
     });
   };
 
+  const copyFormLink = async (publicUrl: string) => {
+    try {
+      const fullUrl = `${window.location.origin}/f/${publicUrl}`;
+      await navigator.clipboard.writeText(fullUrl);
+      toast.success('Form link copied to clipboard!');
+    } catch (error) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = `${window.location.origin}/f/${publicUrl}`;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast.success('Form link copied to clipboard!');
+    }
+  };
+
   if (loading) {
     return <Loading text="Loading form details..." />;
   }
@@ -125,6 +142,14 @@ const FormDetails: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-3">
+            <button
+              onClick={() => copyFormLink(form.publicUrl)}
+              className="btn-secondary flex items-center space-x-2"
+              title="Copy form link"
+            >
+              <Copy className="h-4 w-4" />
+              <span>Copy Link</span>
+            </button>
             <a
               href={`/f/${form.publicUrl}`}
               target="_blank"
@@ -187,14 +212,23 @@ const FormDetails: React.FC = () => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No responses yet</h3>
               <p className="text-gray-500 mb-6">Share your form to start collecting feedback</p>
-              <a
-                href={`/f/${form.publicUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary"
-              >
-                View Public Form
-              </a>
+              <div className="flex items-center justify-center space-x-3">
+                <button
+                  onClick={() => copyFormLink(form.publicUrl)}
+                  className="btn-secondary flex items-center space-x-2"
+                >
+                  <Copy className="h-4 w-4" />
+                  <span>Copy Link</span>
+                </button>
+                <a
+                  href={`/f/${form.publicUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary"
+                >
+                  View Public Form
+                </a>
+              </div>
             </div>
           ) : (
             <div className="bg-white shadow-sm rounded-lg overflow-hidden">

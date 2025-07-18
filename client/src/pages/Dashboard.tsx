@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Calendar, Users, ExternalLink } from 'lucide-react';
+import { Plus, Search, Calendar, Users, ExternalLink, Copy } from 'lucide-react';
 import { Form, Pagination } from '../types';
 import { formsApi } from '../services/api';
 import Loading from '../components/common/Loading';
@@ -50,6 +50,23 @@ const Dashboard: React.FC = () => {
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const copyFormLink = async (publicUrl: string) => {
+    try {
+      const fullUrl = `${window.location.origin}/f/${publicUrl}`;
+      await navigator.clipboard.writeText(fullUrl);
+      toast.success('Form link copied to clipboard!');
+    } catch (error) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = `${window.location.origin}/f/${publicUrl}`;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast.success('Form link copied to clipboard!');
+    }
   };
 
   if (loading && forms.length === 0) {
@@ -141,6 +158,14 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => copyFormLink(form.publicUrl)}
+                        className="text-gray-600 hover:text-gray-900 text-sm font-medium flex items-center space-x-1"
+                        title="Copy form link"
+                      >
+                        <Copy className="h-4 w-4" />
+                        <span>Copy Link</span>
+                      </button>
                       <a
                         href={`/f/${form.publicUrl}`}
                         target="_blank"

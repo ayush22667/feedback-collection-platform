@@ -18,7 +18,7 @@
     "nodejs",
     "mongodb"
   ],
-  "author": "Ayush Anand",
+  "author": "Feedback Platform Team",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"

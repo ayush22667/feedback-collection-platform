@@ -1,67 +1,70 @@
-# Feedback Platform - Backend Server
+# Backend Server - Feedback Collection Platform
 
-## Quick Start
+This directory contains the backend server for the Feedback Collection Platform, built with Node.js, Express, and MongoDB.
 
-1. Install dependencies:
-```bash
-cd server
-npm install
-```
+## Table of Contents
 
-2. Create environment file:
+- [Features](#features)
+- [Architecture](#architecture)
+- [Environment Variables](#environment-variables)
+- [Available Scripts](#available-scripts)
+- [API Endpoints](#api-endpoints)
+
+## Features
+
+- **RESTful API**: A complete set of endpoints for managing forms and collecting responses.
+- **JWT Authentication**: Secure, stateless authentication for all protected routes.
+- **Data Validation**: Server-side validation to ensure data integrity.
+- **Security**: Middleware for rate limiting, CORS, and protection against common vulnerabilities.
+- **CSV Export**: Functionality to export form responses to a CSV file.
+
+## Architecture
+
+The backend follows a standard Model-View-Controller (MVC) pattern to ensure a clear separation of concerns:
+
+- **`src/models`**: Contains the Mongoose schemas for `User`, `Form`, and `Response`.
+- **`src/controllers`**: Holds the business logic for handling requests.
+- **`src/routes`**: Defines the API endpoints and maps them to the appropriate controllers.
+- **`src/middleware`**: Includes custom middleware for authentication and validation.
+- **`src/config`**: For configuration files, such as the database connection.
+- **`src/utils`**: Utility functions that can be reused across the application.
+
+## Environment Variables
+
+To run the server, you need to create a `.env` file in the `server` directory. You can copy the example file to get started:
+
 ```bash
 cp .env.example .env
 ```
 
-3. Update `.env` with your values:
-```env
-NODE_ENV=development
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/feedback-platform
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRE=7d
-CLIENT_URL=http://localhost:3000
-```
+The following variables need to be set:
 
-4. Start the server:
-```bash
-# Development mode with auto-reload
-npm run dev
+- `NODE_ENV`: The application environment (e.g., `development`, `production`).
+- `PORT`: The port on which the server will run (e.g., `5000`).
+- `MONGODB_URI`: The connection string for your MongoDB instance.
+- `JWT_SECRET`: A secret key for signing JWT tokens.
+- `JWT_EXPIRE`: The expiration time for JWT tokens (e.g., `7d`).
+- `CLIENT_URL`: The URL of the frontend application for CORS configuration.
 
-# Production mode
-npm start
-```
+## Available Scripts
+
+- **`npm start`**: Starts the server in production mode.
+- **`npm run dev`**: Starts the server in development mode with `nodemon` for automatic restarts.
+- **`npm test`**: Runs the test suite.
+- **`npm run lint`**: Lints the codebase for potential errors.
+- **`npm run seed`**: Seeds the database with initial data.
 
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new admin
-- `POST /api/auth/login` - Login admin
-- `GET /api/auth/verify` - Verify JWT token
+- `POST /api/auth/register`: Register a new admin.
+- `POST /api/auth/login`: Login for an admin.
 
-### Forms (Protected)
-- `POST /api/forms` - Create new form
-- `GET /api/forms` - List user's forms
-- `GET /api/forms/:id` - Get form details
-- `PUT /api/forms/:id` - Update form
-- `DELETE /api/forms/:id` - Delete form
+### Form Management (Protected)
+- `POST /api/forms`: Create a new form.
+- `GET /api/forms`: Get all forms for the logged-in user.
+- `GET /api/forms/:id`: Get details for a specific form.
 
-### Responses (Protected)
-- `GET /api/forms/:id/responses` - Get form responses
-- `GET /api/forms/:id/analytics` - Get response analytics
-- `GET /api/forms/:id/export` - Export responses as CSV
-
-### Public
-- `GET /api/public/forms/:publicUrl` - Get public form
-- `POST /api/public/forms/:publicUrl/submit` - Submit response
-
-## Features Implemented
-✅ User authentication with JWT
-✅ Form CRUD operations
-✅ Public form access
-✅ Response collection
-✅ Analytics and reporting
-✅ CSV export
-✅ Input validation
-✅ Rate limiting
-✅ Security middleware
+### Public Endpoints
+- `GET /api/public/forms/:publicUrl`: Get a form by its public URL.
+- `POST /api/public/forms/:publicUrl/submit`: Submit a response to a form.

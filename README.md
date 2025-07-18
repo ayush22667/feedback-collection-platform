@@ -95,13 +95,20 @@ This project was developed with a focus on creating a scalable, maintainable, an
     cd feedback-collection-platform
     ```
 
-2.  **Setup the Backend**:
+2.  **Install All Dependencies**:
+    ```bash
+    npm run setup
+    ```
+    This will install dependencies for the root project, server, and client.
+
+3.  **Setup Environment Variables**:
+    
+    **Backend Configuration:**
     ```bash
     cd server
-    npm install
     cp .env.example .env
     ```
-    - **Edit the `.env` file** with your MongoDB connection string, JWT secret, and email configuration.
+    - **Edit the `server/.env` file** with your configuration:
     ```env
     NODE_ENV=development
     PORT=5000
@@ -125,37 +132,46 @@ This project was developed with a focus on creating a scalable, maintainable, an
     MAX_PAGE_SIZE=100
     ```
     
-    **Email Setup Notes:**
-    - For Gmail: Use an [App Password](https://support.google.com/accounts/answer/185833) instead of your regular password
-    - For other providers: Configure SMTP settings as shown in `.env.example`
-    - Email is required for OTP verification during user registration
-
-3.  **Setup the Frontend**:
+    **Frontend Configuration:**
     ```bash
     cd ../client
-    npm install
     cp .env.example .env
     ```
-    - **Edit the `.env` file** to point to your backend API.
+    - **Edit the `client/.env` file**:
     ```env
     VITE_API_URL=http://localhost:5000/api
     ```
+    
+    **Email Setup Notes:**
+    - For Gmail: Use an [App Password](https://support.google.com/accounts/answer/185833) instead of your regular password
+    - For other providers: Configure SMTP settings as shown in `server/.env.example`
+    - Email is required for OTP verification during user registration
 
 ### Running the Application
 
-1.  **Start the Backend Server**:
-    ```bash
-    cd server
-    npm run dev
-    ```
-    The server will be running at `http://localhost:5000`.
+**Option 1: Run Both Frontend and Backend (Recommended)**
+```bash
+npm run dev
+```
+This single command will start both the backend server (http://localhost:5000) and frontend development server (http://localhost:3000) simultaneously.
 
-2.  **Start the Frontend Development Server**:
-    ```bash
-    cd client
-    npm run dev
-    ```
-    The client will be running at `http://localhost:3000`.
+**Option 2: Run Individually**
+```bash
+# Backend only
+npm run server
+
+# Frontend only  
+npm run client
+```
+
+### Available Scripts
+
+- `npm run dev` - Start both frontend and backend in development mode
+- `npm run server` - Start only the backend server
+- `npm run client` - Start only the frontend development server
+- `npm run setup` - Install dependencies for all projects
+- `npm run build` - Build the frontend for production
+- `npm start` - Start the backend in production mode
 
 ## Usage Guide
 

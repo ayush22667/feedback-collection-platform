@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Download, Users, Calendar, BarChart3, Eye, Copy } from 'lucide-react';
-import { Form, Response, Analytics } from '../types';
+import { ArrowLeft, ExternalLink, Download, Users, Calendar, BarChart3, Eye, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Form, Response, Analytics, Pagination } from '../types';
 import { formsApi } from '../services/api';
 import Loading from '../components/common/Loading';
 import toast from 'react-hot-toast';
@@ -14,7 +14,8 @@ const FormDetails: React.FC = () => {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'responses' | 'analytics'>('responses');
-  const [pagination, setPagination] = useState<any>(null);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (id) {
@@ -22,12 +23,18 @@ const FormDetails: React.FC = () => {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (id && currentPage > 1) {
+      fetchResponses(currentPage);
+    }
+  }, [currentPage, id]);
+
   const fetchFormData = async () => {
     try {
       setLoading(true);
       const [formResponse, responsesResponse, analyticsResponse] = await Promise.all([
         formsApi.getById(id!),
-        formsApi.getResponses(id!, { limit: 10 }),
+        formsApi.getResponses(id!, { limit: 10, page: 1 }),
         formsApi.getAnalytics(id!),
       ]);
 
@@ -49,6 +56,27 @@ const FormDetails: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchResponses = async (page: number) => {
+    try {
+      const responsesResponse = await formsApi.getResponses(id!, { 
+        limit: 10, 
+        page 
+      });
+
+      if (responsesResponse.data.success) {
+        setResponses(responsesResponse.data.data.responses);
+        setPagination(responsesResponse.data.data.pagination);
+      }
+    } catch (error: any) {
+      toast.error('Failed to fetch responses');
+      console.error('Fetch responses error:', error);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const handleExport = async () => {
@@ -263,6 +291,69 @@ const FormDetails: React.FC = () => {
                   </div>
                 ))}
               </div>
+              {pagination && pagination.totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-700">
+                      Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
+                      {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of{' '}
+                      {pagination.totalItems} responses
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        disabled={!pagination.hasPrev}
+                        className={`p-2 rounded-md ${
+                          pagination.hasPrev
+                            ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                            : 'text-gray-300 cursor-not-allowed'
+                        }`}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      
+                      <div className="flex items-center space-x-1">
+                        {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                          .filter(page => {
+                            const current = pagination.currentPage;
+                            return page === 1 || 
+                                   page === pagination.totalPages || 
+                                   (page >= current - 1 && page <= current + 1);
+                          })
+                          .map((page, index, array) => (
+                            <React.Fragment key={page}>
+                              {index > 0 && array[index - 1] !== page - 1 && (
+                                <span className="px-2 py-1 text-gray-500">...</span>
+                              )}
+                              <button
+                                onClick={() => handlePageChange(page)}
+                                className={`px-3 py-1 rounded-md text-sm ${
+                                  page === pagination.currentPage
+                                    ? 'bg-primary-600 text-white'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            </React.Fragment>
+                          ))}
+                      </div>
+                      
+                      <button
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={!pagination.hasNext}
+                        className={`p-2 rounded-md ${
+                          pagination.hasNext
+                            ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                            : 'text-gray-300 cursor-not-allowed'
+                        }`}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

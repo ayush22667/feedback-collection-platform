@@ -45,6 +45,30 @@ The following variables need to be set:
 - `JWT_SECRET`: A secret key for signing JWT tokens.
 - `JWT_EXPIRE`: The expiration time for JWT tokens (e.g., `7d`).
 - `CLIENT_URL`: The URL of the frontend application for CORS configuration.
+- `RATE_LIMIT_WINDOW_MS`: Time window for rate limiting in milliseconds (e.g., `900000` for 15 minutes).
+- `RATE_LIMIT_MAX_REQUESTS`: Maximum number of requests per window (e.g., `100`).
+- `DEFAULT_PAGE_SIZE`: Default number of items per page for pagination (e.g., `10`).
+- `MAX_PAGE_SIZE`: Maximum allowed page size to prevent performance issues (e.g., `100`).
+
+### Email Configuration
+
+The application supports email functionality for OTP verification and welcome emails. Choose one of the following methods:
+
+**Method 1: Gmail (Recommended for Development)**
+- `EMAIL_SERVICE`: Set to `gmail`
+- `EMAIL_USER`: Your Gmail address
+- `EMAIL_PASS`: Your Gmail app password (not your regular password)
+- `EMAIL_FROM`: The "from" address for emails (usually same as EMAIL_USER)
+
+**Method 2: Custom SMTP Server**
+- `SMTP_HOST`: Your SMTP server hostname
+- `SMTP_PORT`: SMTP port (usually 587 for TLS or 465 for SSL)
+- `SMTP_SECURE`: Set to `true` for SSL, `false` for TLS
+- `SMTP_USER`: SMTP username
+- `SMTP_PASS`: SMTP password
+- `EMAIL_FROM`: The "from" address for emails
+
+**Note**: If no email configuration is provided, the application will log OTP codes to the console for development purposes.
 
 ## Available Scripts
 
@@ -64,6 +88,15 @@ The following variables need to be set:
 - `POST /api/forms`: Create a new form.
 - `GET /api/forms`: Get all forms for the logged-in user.
 - `GET /api/forms/:id`: Get details for a specific form.
+- `PUT /api/forms/:id`: Update a specific form.
+- `DELETE /api/forms/:id`: Delete a specific form.
+
+### Response Management (Protected)
+- `GET /api/forms/:id/responses`: Get paginated responses for a form.
+  - Query parameters: `page` (default: 1), `limit` (default: 10, max: 100)
+  - Returns: `{ responses: [], pagination: { currentPage, totalPages, totalItems, itemsPerPage, hasNext, hasPrev } }`
+- `GET /api/forms/:id/analytics`: Get analytics data for a form.
+- `GET /api/forms/:id/export`: Export form responses as CSV.
 
 ### Public Endpoints
 - `GET /api/public/forms/:publicUrl`: Get a form by its public URL.

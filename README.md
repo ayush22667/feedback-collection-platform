@@ -35,7 +35,9 @@ A full-stack web application that enables businesses to create customizable feed
 
 ### 📈 Analytics & Reporting
 - **Response Dashboard**: View all form responses in a centralized and user-friendly interface.
+- **Pagination Support**: Navigate through large sets of responses with efficient pagination controls.
 - **Data Export**: Export collected responses to a CSV file for external analysis.
+- **Real-time Analytics**: View form completion rates, response counts, and submission trends.
 
 ## Tech Stack
 
@@ -99,7 +101,7 @@ This project was developed with a focus on creating a scalable, maintainable, an
     npm install
     cp .env.example .env
     ```
-    - **Edit the `.env` file** with your MongoDB connection string and a secure JWT secret.
+    - **Edit the `.env` file** with your MongoDB connection string, JWT secret, and email configuration.
     ```env
     NODE_ENV=development
     PORT=5000
@@ -107,7 +109,26 @@ This project was developed with a focus on creating a scalable, maintainable, an
     JWT_SECRET=your-super-secret-jwt-key
     JWT_EXPIRE=7d
     CLIENT_URL=http://localhost:3000
+    
+    # Email Configuration (for OTP verification)
+    EMAIL_SERVICE=gmail
+    EMAIL_USER=your-email@gmail.com
+    EMAIL_PASS=your-app-password
+    EMAIL_FROM=your-email@gmail.com
+    
+    # Rate Limiting
+    RATE_LIMIT_WINDOW_MS=900000
+    RATE_LIMIT_MAX_REQUESTS=100
+    
+    # Pagination
+    DEFAULT_PAGE_SIZE=10
+    MAX_PAGE_SIZE=100
     ```
+    
+    **Email Setup Notes:**
+    - For Gmail: Use an [App Password](https://support.google.com/accounts/answer/185833) instead of your regular password
+    - For other providers: Configure SMTP settings as shown in `.env.example`
+    - Email is required for OTP verification during user registration
 
 3.  **Setup the Frontend**:
     ```bash
@@ -158,6 +179,14 @@ This project was developed with a focus on creating a scalable, maintainable, an
 - `POST /api/forms`: Create a new form.
 - `GET /api/forms`: Get all forms for the logged-in user.
 - `GET /api/forms/:id`: Get details for a specific form.
+- `PUT /api/forms/:id`: Update a specific form.
+- `DELETE /api/forms/:id`: Delete a specific form.
+
+### Response Management (Protected)
+- `GET /api/forms/:id/responses`: Get paginated responses for a form.
+  - Query parameters: `page` (default: 1), `limit` (default: 10, max: 100)
+- `GET /api/forms/:id/analytics`: Get analytics data for a form.
+- `GET /api/forms/:id/export`: Export form responses as CSV.
 
 ### Public Endpoints
 - `GET /api/public/forms/:publicUrl`: Get a form by its public URL.

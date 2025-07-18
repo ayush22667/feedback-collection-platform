@@ -18,7 +18,7 @@
     "nodejs",
     "mongodb"
   ],
-  "author": "Your Name",
+  "author": "Ayush Anand",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
